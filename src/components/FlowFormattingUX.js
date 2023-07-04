@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, forwardRef } from "react";
+import { useEffect, useState, forwardRef } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import Stack from "react-bootstrap/Stack";
 import Row from "react-bootstrap/Row";
@@ -21,13 +21,17 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
   { elesForCyInit, loadFlowJSONFromFile, clear, reset },
   cyRef
 ) {
+  const connectionDefaultWidth = 175;
+  const connectionDefaultHeight = 140;
+  const annotationDefaultWidth = 300;
+  const annotationDefaultHeight = 30;
+  const evalDefaultWidth = 110;
+  const evalDefaultHeight = 100;
   const defaultAnimationDuration = 1;
   const maxAnimationDuration = 1000;
   const minAnimationDuration = 1;
   const [aniDur, setAniDur] = useState(defaultAnimationDuration);
   const [isAccordionOpen, setIsAccordionOpen] = useState(true);
-  const [aniDescriptionText, setAniDescriptionText] = useState("");
-  const [aniText, setAniText] = useState("Ready!");
   const [isInstant, setIsInstant] = useState(false);
 
   const toggleAccordion = () => {
@@ -53,6 +57,18 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
     </Tooltip>
   );
 
+  useEffect(() => {
+    if (cyRef.current) {
+      cyRef.current.ready((event) => {
+        console.log("event.target", event.target);
+
+        cyRef.current.on("vclick", '[nodeType = "CONNECTION"]', (event) => {
+          console.log("event.target", event.target);
+        });
+      });
+    }
+  }, [cyRef.current]);
+
   return (
     <Container
       fluid
@@ -76,89 +92,12 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
         autounselectify={true}
         stylesheet={[
           {
-            "selector": '[nodeType = "CONNECTION"]',
-            "style": {
-              shape: "rectangle",
-            },
-            "width": connectionDefaultWidth,
-            "height": connectionDefaultHeight,
-            "background-opacity": 1,
-            "background-color": (ele) => {
-              const props = ele.data("properties");
-              const bgColor = props?.backgroundColor?.value;
-
-              if (bgColor) {
-                return bgColor.slice(0, 7);
-              }
-
-              return "#CCFBFE";
-            },
-            "background-blacken": 0,
-            "label": (ele) => {
-              const eleProps = ele.data("properties");
-              const title = eleProps?.nodeTitle?.value;
-              const name = ele.data("name");
-
-              let firstRowLabel = title || name || "connection";
-              return (
-                (firstRowLabel ? firstRowLabel : "") +
-                "\n" +
-                ele.id() +
-                "\n(" +
-                new Intl.NumberFormat("en-US", {
-                  minimumFractionDigits: 0,
-                  useGrouping: false,
-                }).format(ele.position("x")) +
-                "," +
-                new Intl.NumberFormat("en-US", {
-                  minimumFractionDigits: 0,
-                  useGrouping: false,
-                }).format(ele.position("y")) +
-                ")"
-              );
-            },
-            "font-size": 20,
-            "text-opacity": 1.0,
-            "text-wrap": "wrap",
-            "text-valign": "center",
-            "text-margin-y": 5,
-            "text-transform": "lowercase",
-            "text-outline-opacity": "1",
-            "text-outline-color": "#F0F66E",
-            "text-outline-width": 0.1,
-            "text-max-width": (ele) => {
-              const eleProps = ele.data("properties");
-              return eleProps?.width?.value || connectionDefaultWidth;
-            },
-            "line-height": 1.1,
-            "color": "#FFFaaa",
-            "z-index": 5,
-            "z-index-compare": "manual",
-          },
-          {
-            selector: '[nodeType = "EVAL"]',
+            selector: '[nodeType = "CONNECTION"]',
             style: {
-              "shape": "round-diamond",
-              "width": (ele) => {
-                const eleProps = ele.data("properties");
-                const width = eleProps?.width?.value;
+              "shape": "rectangle",
 
-                if (width) {
-                  return width;
-                }
-
-                return evalDefaultWidth;
-              },
-              "height": (ele) => {
-                const eleProps = ele.data("properties");
-                const height = eleProps?.height?.value;
-
-                if (height) {
-                  return height;
-                }
-
-                return evalDefaultHeight;
-              },
+              "width": connectionDefaultWidth,
+              "height": connectionDefaultHeight,
               "background-opacity": 1,
               "background-color": (ele) => {
                 const props = ele.data("properties");
@@ -168,9 +107,61 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
                   return bgColor.slice(0, 7);
                 }
 
-                return "#ee6c4d";
+                return "#A4B7D5";
               },
               "background-blacken": 0,
+              "label": (ele) => {
+                const eleProps = ele.data("properties");
+                const title = eleProps?.nodeTitle?.value;
+                const label = ele.data("label");
+
+                let firstRowLabel = title || label || "connection";
+                return (
+                  firstRowLabel +
+                  "\n" +
+                  ele.id() +
+                  "\n(" +
+                  new Intl.NumberFormat("en-US", {
+                    minimumFractionDigits: 0,
+                    useGrouping: false,
+                  }).format(ele.position("x")) +
+                  "," +
+                  new Intl.NumberFormat("en-US", {
+                    minimumFractionDigits: 0,
+                    useGrouping: false,
+                  }).format(ele.position("y")) +
+                  ")"
+                );
+              },
+
+              "font-size": 16,
+              "text-opacity": 1.0,
+              "text-wrap": "wrap",
+              "text-valign": "center",
+              "text-margin-y": 5,
+              "text-transform": "lowercase",
+              "text-outline-opacity": "1",
+              "text-outline-color": "#F0F66E",
+              "text-outline-width": 0.1,
+              "text-max-width": (ele) => {
+                const eleProps = ele.data("properties");
+                return eleProps?.width?.value || connectionDefaultWidth;
+              },
+              "line-height": 1.1,
+              "color": "#000000",
+              "z-index": 5,
+              "z-index-compare": "manual",
+            },
+          },
+          {
+            selector: '[nodeType = "EVAL"]',
+            style: {
+              "shape": "round-diamond",
+              "width": evalDefaultWidth,
+              "height": evalDefaultHeight,
+              "background-opacity": 1,
+              "background-color": "#ee6c4d",
+              "background-blacken": 0.2,
               "label": (ele) => {
                 const eleProps = ele.data("properties");
 
@@ -270,8 +261,8 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
             style: {
               "width": 5,
               "color": "#4E937A",
-              "opacity": 0.75,
-              "font-size": "15",
+              "opacity": 0.7,
+              "font-size": "12",
               "text-justification": "center",
               "text-margin-x": "-10",
               "text-margin-y": "20",
@@ -313,12 +304,21 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
         ]}
       />
 
-      <Form className="fixed-bottom w-100 p-1 m-0 d-flex align-bottom">
-        <Row className="p-0 m-0 w-100 row-cols-auto justify-content-between">
+      <Form className="fixed-bottom w-100 p-1 m-0 d-flex">
+        <Row className="p-0 m-0 w-100 row-cols-auto justify-content-between flex-nowrap align-items-end gap-2">
+          <Col className="p-0 m-0 d-flex flex-grow-0 flex-shrink-10">
+            <Button
+              variant="danger"
+              size="sm"
+              className="py-1 px-2 m-0 opacity-75 align-self-end"
+              onClick={(e) => clear(e)}>
+              <p className="p-0 m-0 display-9 fw-semibold">Home</p>
+            </Button>
+          </Col>
+
           <Col
             id="animationConfigCol"
-            // xs={1}
-            className="p-0 m-0 d-flex flex-column align-bottom">
+            className="p-0 m-0 d-flex flex-column flex-grow-0 flex-shrink-10">
             <Form.Text
               id="isInstantText"
               className="text-info">
@@ -348,25 +348,23 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
             </ToggleButtonGroup>
           </Col>
 
-          <Col
-            // xs={1}
-            className="p-0 m-0 align-bottom d-flex justify-content-center">
-            <Form.Floating className="p-0 m-0">
-              <Form.Label
-                className=" w-100 h-100"
-                placeholder=".01">
-                <p className="p-0 m-0 text-light w-100 text-nowrap">
-                  <small className="p-0 m-0">sliderValue: </small>
-                  {aniDur}
-                </p>
-              </Form.Label>
+          <Col className="p-0 m-0 d-flex justify-content-center flex-grow-0 flex-shrink-10 h-100">
+            <Form.Floating className="p-0 m-0 h-100 d-flex flex-column flex-grow-0 flex-shrink-10 justify-content-center">
               <Form.Range
                 value={aniDur}
                 min={minAnimationDuration}
                 max={maxAnimationDuration}
                 step={1}
                 onChange={(e) => onAnimationDurationChange(e)}
+                className="p-0 m-0 flex-grow-0 flex-shrink-10"
               />
+              <Form.Label
+                className="p-0 m-0 w-100 d-flex flex-grow-0 flex-shrink-10  text-center align-items-end"
+                placeholder={1}>
+                <p className="p-0 m-0 text-light w-100 text-nowrap">
+                  <small className="p-0 m-0">{aniDur}</small>
+                </p>
+              </Form.Label>
             </Form.Floating>
           </Col>
 
@@ -391,21 +389,11 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
             </OverlayTrigger>
           </Col>
 
-          <Col className="p-2 m-0 d-flex flex-grow-0 flex-shrink-10">
-            <Button
-              variant="danger"
-              size="sm"
-              className="py-0 px-4 m-0 opacity-75"
-              onClick={(e) => clear(e)}>
-              <p className="p-0 m-0 display-9 fw-semibold">Home</p>
-            </Button>
-          </Col>
-
-          <Col className="p-0 m-0 flex-grow-100 flex-shrink-0">
+          <Col className="p-0 m-0 flex-grow-100 flex-shrink-1">
             <Form.Group
               controlId="formFileLg"
               className="">
-              <Form.Label className="text-light small m-0">
+              <Form.Label className="text-light text-nowrap small m-0">
                 Upload Different JSON
               </Form.Label>
               <Form.Control
@@ -417,20 +405,20 @@ const FlowFormattingUX = forwardRef(function FlowFormattingUX(
             </Form.Group>
           </Col>
 
-          <Col className="p-0 m-0 flex-grow-10 flex-shrink-0">
+          <Col className="p-0 m-0 d-flex flex-grow-10 flex-shrink-1">
             <Button
-              className="p-1 opacity-75 align-text-top"
+              className="p-1 opacity-75 align-self-end"
               variant="secondary"
               size="sm"
               href="https://pingidentity.com/signon"
               target="_blank">
-              <p className="p-0 m-0 display-8 text-body fw-bold fst-italic">
+              <p className="p-0 m-0 display-8 text-body text-nowrap fw-bold fst-italic">
                 PingOne DaVinci
               </p>
             </Button>
           </Col>
 
-          <Col className="p-0 m-0 d-flex align-items-end">
+          <Col className="p-0 m-0 d-flex">
             <p
               id="dombrowski"
               className="text-info p-0 m-0">

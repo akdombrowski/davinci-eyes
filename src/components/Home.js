@@ -170,7 +170,9 @@ function App() {
     if (e) {
       e.preventDefault();
     }
+
     if (cyRef.current) {
+      cyRef.current.removeAllListeners();
       cyRef.current.stop(true);
       cyRef.current.unmount();
       cyRef.current.destroy();
@@ -182,19 +184,22 @@ function App() {
     setAnnosShifted(false);
   };
 
-  const reset = (e) => {
-    e.preventDefault();
+  const reset = (event) => {
+    event.preventDefault();
     const file = fileRef.current;
+
+    cyRef.current?.removeAllListeners();
+
     // Intermediate node element to reset state
     setElesForCyInit([
       {
         data: {
-          id: "reloading",
-          nodeType: "RELOADING",
-          name: "Reloading",
+          id: "loading",
+          nodeType: "LOADING",
+          name: "Loading",
           properties: {
             backgroundColor: { value: "#ffffffff" },
-            annotation: { value: "Reloading" },
+            annotation: { value: "Loading" },
             annotationTextColor: { value: "#000000ff" },
             strokeEnabled: { value: false },
             strokeWidth: { value: 0 },
@@ -206,7 +211,7 @@ function App() {
             width: { value: 180 },
           },
           status: "configured",
-          idUnique: "reloading",
+          idUnique: "loading",
         },
         position: { x: 0, y: 0 },
         group: "nodes",
@@ -228,6 +233,7 @@ function App() {
       shiftAnnos(cyRef.current.nodes());
       cloneElesRef.current = createClonedNodes(cyRef.current);
     } else if (!flowJSONRef.current && cyRef.current) {
+      cyRef.current.removeAllListeners();
       cyRef.current.unmount();
       cyRef.current.destroy();
       cyRef.current = null;
