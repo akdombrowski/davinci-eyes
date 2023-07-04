@@ -245,7 +245,7 @@ function App() {
               className="pb-5">
               <Row className="pb-5">
                 <Col
-                  id="beautiflowifyTitle"
+                  id="davinciEyesTitle"
                   xs={10}
                   sm={9}
                   md={8}
