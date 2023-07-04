@@ -126,32 +126,6 @@ function App() {
     }
   };
 
-  const exportToDVJSON = (e) => {
-    e.preventDefault();
-    if (cyRef.current && flowJSONRef.current) {
-      cyRef.current.stop(true);
-      resetAnnosPosFromNodes(cyRef.current.nodes());
-
-      const updatedDVFlowJSON = getFlowJSON(flowJSONRef.current, cyRef.current);
-      const updatedDVFlowJSONString = JSON.stringify(updatedDVFlowJSON);
-      const blob = new Blob([updatedDVFlowJSONString], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      const dateTime = getDateTime();
-      if (fileRef.current?.name) {
-        link.download =
-          "beautiflowified---" + dateTime + "---" + fileRef.current.name;
-      } else {
-        link.download = "dvBeautiflow---" + dateTime;
-      }
-
-      link.href = url;
-      link.click();
-
-      shiftAnnosPosFromNodes(cyRef.current.nodes());
-    }
-  };
-
   const clearErr = (e) => {
     e.preventDefault();
 
@@ -260,7 +234,6 @@ function App() {
           <FlowFormattingUX
             elesForCyInit={elesForCyInit}
             loadFlowJSONFromFile={loadFlowJSONFromFile}
-            exportToDVJSON={exportToDVJSON}
             clear={clear}
             reset={reset}
             ref={cyRef}
